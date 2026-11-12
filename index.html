@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#184d33">
+  <meta name="description" content="A playful two-way currency converter between Monopoly-style play money and real-world currencies.">
+  <title>Monopoly Exchange — Play money, real perspective</title>
+  <style>
+    :root{--green:#184d33;--deep:#103723;--forest:#23683e;--cream:#f7f1db;--gold:#dcb64f;--mint:#e1ecd9;--ink:#163525;--muted:#57725e;--line:#d8deca;--white:#fff;--shadow:0 25px 80px #061c1045}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:var(--green);font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--cream);overflow-x:hidden}
+    button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+    .backdrop{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:-1;background:radial-gradient(circle at 18% 8%,#397651 0,transparent 30%),radial-gradient(circle at 82% 88%,#103620 0,transparent 34%),var(--green)}
+    .backdrop:before{content:"";position:absolute;inset:0;opacity:.1;background-image:linear-gradient(#f1db9f 1px,transparent 1px),linear-gradient(90deg,#f1db9f 1px,transparent 1px);background-size:74px 74px;transform:rotate(-10deg) scale(1.3)}
+    .shell{width:min(1180px,calc(100% - 40px));margin:auto}
+    .topbar{display:flex;justify-content:space-between;align-items:center;padding:25px 0;gap:16px;border-bottom:1px solid #ffffff26}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.06em;font-size:.91rem;text-transform:uppercase}.brandmark{display:grid;place-items:center;width:42px;height:42px;border:2px solid var(--gold);border-radius:12px;background:#f7e4a51f;color:var(--gold);font-size:1.35rem}
+    .topbar-note{font-size:.78rem;color:#d6e5d9;letter-spacing:.08em;text-transform:uppercase}.topbar-note i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#83d79b;margin-right:8px}
+    .hero{text-align:center;padding:52px 0 30px}.eyebrow{color:#efd08a;font-size:.78rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase}.hero h1{max-width:850px;margin:13px auto 14px;line-height:1.06;font-size:clamp(2.45rem,6vw,5.3rem);letter-spacing:-.055em;font-weight:900}.hero h1 span{color:var(--gold)}.hero p{max-width:590px;margin:0 auto;color:#dce9dd;font-size:1rem}
+    .converter{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:22px;margin:20px 0 22px;align-items:stretch}
+    .card{background:var(--cream);border-radius:22px;color:var(--ink);box-shadow:var(--shadow)}.main-card{padding:clamp(20px,3vw,34px)}.card-kicker{font-size:.72rem;letter-spacing:.15em;font-weight:900;color:#50705b;text-transform:uppercase;margin:0 0 5px}.card-heading{font-size:1.55rem;line-height:1.2;font-weight:850;letter-spacing:-.04em;margin:0 0 23px}
+    .field-label{display:block;font-weight:800;font-size:.82rem;margin:0 0 8px}.field-note{font-size:.78rem;color:#58735f}
+    .amount-wrap{display:flex;align-items:center;background:var(--white);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:20px}.amount-wrap input{border:0;padding:15px 16px;min-width:0;width:100%;font-size:1.7rem;font-weight:750;color:var(--ink);background:transparent;outline:none}.amount-wrap:focus-within{border-color:#2b7d4b;box-shadow:0 0 0 3px #2b7d4b20}.amount-tag{padding:0 17px;font-size:.75rem;font-weight:800;color:#527260;white-space:nowrap}
+    .row-currency{display:grid;grid-template-columns:1fr 50px 1fr;align-items:end;gap:11px}.field-block{min-width:0}.selection{display:flex;align-items:center;gap:9px;width:100%;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);padding:12px 12px;min-height:65px;text-align:left}.selection .symbol{font-size:1.35rem}.selection small{display:block;color:#688171;font-size:.71rem;line-height:1.2}.selection strong{font-size:.9rem}.selection .caret{margin-left:auto;color:#547562}.selection:disabled{cursor:default}.swap{height:46px;width:46px;margin:0 0 10px;border:1px solid #d2deca;background:#e6eddd;color:#17623a;border-radius:50%;font-size:1.5rem;transition:transform .18s,background .18s}.swap:hover{transform:rotate(180deg);background:#d5e9d4}
+    .action{width:100%;margin:22px 0 0;border:0;border-radius:12px;background:var(--forest);color:white;padding:15px 18px;font-size:1rem;font-weight:850;box-shadow:0 7px 0 #153f26;transition:filter .15s,transform .15s}.action:hover{filter:brightness(1.08)}.action:active{transform:translateY(4px);box-shadow:0 3px 0 #153f26}
+    .result-card{padding:clamp(20px,3vw,32px);background:#dfead7;display:flex;flex-direction:column;justify-content:space-between}.result-card .result-kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;font-weight:900;color:#53715c}.result-num{font-size:clamp(2.1rem,3.8vw,3.45rem);font-weight:900;letter-spacing:-.055em;line-height:1.09;overflow-wrap:anywhere;margin:18px 0 4px}.result-unit{font-weight:850;color:#29553b;font-size:1rem}.result-divider{height:1px;background:#b6cdb4;margin:22px 0 18px}.result-rate{font-size:.93rem;font-weight:750}.status{font-size:.76rem;color:#54745f;margin-top:8px;min-height:35px}.status.error{color:#a43c31}.copy{align-self:flex-start;background:none;border:1px solid #a8c4a9;color:#205536;padding:7px 12px;border-radius:8px;font-weight:750;font-size:.78rem;margin-top:14px}
+    .bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:22px 0 52px}.info{border:1px solid #ffffff2c;background:#ffffff0c;border-radius:15px;padding:18px}.info .icon{font-size:1.2rem}.info h3{font-size:.92rem;margin:8px 0 5px}.info p{font-size:.78rem;color:#d2e2d3;margin:0}
+    footer{border-top:1px solid #ffffff28;padding:20px 0 34px;display:flex;gap:14px;justify-content:space-between;flex-wrap:wrap;color:#d3e1d4;font-size:.75rem}footer a{color:#f0d88f}
+    .picker-overlay[hidden]{display:none}.picker-overlay{position:fixed;inset:0;z-index:10;background:#061c10a8;display:flex;align-items:center;justify-content:center;padding:20px}.picker{width:min(520px,100%);max-height:min(720px,85vh);background:var(--cream);border-radius:18px;padding:22px;display:flex;flex-direction:column;color:var(--ink);box-shadow:0 20px 60px #0007}.picker-head{display:flex;align-items:center;justify-content:space-between;gap:14px}.picker-head h2{margin:0 0 14px;font-size:1.25rem}.close{background:#e0e7d5;border:0;border-radius:9px;padding:6px 11px;font-size:1.25rem}.search{width:100%;border:1.5px solid var(--line);padding:13px 14px;border-radius:10px;margin-bottom:12px;background:white;color:var(--ink)}.currency-list{overflow:auto;min-height:100px}.currency-item{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 10px;border:0;border-bottom:1px solid #d8dfce;background:transparent;text-align:left;color:var(--ink)}.currency-item:hover,.currency-item:focus-visible{background:#e3e9d9}.currency-item span:last-child{font-weight:850;color:#57735f}.empty{color:#57735f;padding:12px}
+    @media(max-width:790px){.converter{grid-template-columns:1fr}.result-card{min-height:240px}.hero{padding-top:42px}.bottom{grid-template-columns:1fr}.topbar-note{display:none}}
+    @media(max-width:470px){.shell{width:min(100% - 24px,1180px)}.topbar{padding:16px 0}.hero{padding:35px 0 18px}.main-card{padding:18px}.row-currency{grid-template-columns:1fr 42px 1fr;gap:6px}.selection{padding:9px 7px;min-height:68px}.selection strong{font-size:.75rem}.selection small{font-size:.64rem}.selection .symbol{font-size:1rem}.swap{width:39px;height:39px;font-size:1.3rem}.amount-wrap input{font-size:1.35rem}}
+  </style>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"></div>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="brandmark" aria-hidden="true">♜</span><span>Monopoly Exchange</span></div>
+    <div class="topbar-note"><i></i>Play money · Real perspective</div>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="headline">
+      <div class="eyebrow">The playful currency calculator</div>
+      <h1 id="headline">How much is your money worth <span>in Monopoly?</span></h1>
+      <p>Go from Monopoly dollars to real money — or flip it around. Pick a currency, enter an amount, and discover the difference.</p>
+    </section>
+    <section class="converter" aria-label="Currency converter">
+      <div class="card main-card">
+        <p class="card-kicker">The exchange desk</p>
+        <h2 class="card-heading">Convert your currency</h2>
+        <label class="field-label" for="amount">Enter an amount</label>
+        <div class="amount-wrap"><input id="amount" type="number" min="0" step="any" value="10" inputmode="decimal" aria-describedby="amountHint"><span class="amount-tag" id="amountTag">USD</span></div>
+        <div class="row-currency">
+          <div class="field-block"><span class="field-label">From</span><button type="button" class="selection" id="fromBtn"><span class="symbol" id="fromIcon">🇺🇸</span><span><strong id="fromName">US Dollar</strong><small id="fromCode">USD</small></span><span class="caret">⌄</span></button></div>
+          <button class="swap" id="swap" title="Swap conversion direction" aria-label="Swap conversion direction" type="button">⇄</button>
+          <div class="field-block"><span class="field-label">To</span><button type="button" class="selection" id="toBtn"><span class="symbol" id="toIcon">🎩</span><span><strong id="toName">Monopoly Dollar</strong><small id="toCode">MNY</small></span><span class="caret">⌄</span></button></div>
+        </div>
+        <p class="field-note" style="margin:12px 0 0">Every exchange includes Monopoly money on one side.</p>
+        <button type="button" class="action" id="convert">Convert now →</button>
+      </div>
+      <aside class="card result-card" aria-live="polite" aria-atomic="true">
+        <div>
+          <div class="result-kicker">Your conversion</div>
+          <div class="result-num" id="result">12,500</div>
+          <div class="result-unit" id="resultUnit">Monopoly Dollars</div>
+        </div>
+        <div>
+          <div class="result-divider"></div>
+          <div class="result-rate" id="rateDisplay">1 USD = 1,250 MNY</div>
+          <div class="status" id="status">Based on the fixed Monopoly valuation.</div>
+          <button class="copy" type="button" id="copy">Copy result</button>
+        </div>
+      </aside>
+    </section>
+    <section class="bottom" aria-label="How this works">
+      <div class="info"><div class="icon">🎩</div><h3>Our Monopoly benchmark</h3><p>500 Monopoly dollars = $0.40 USD. This is a chosen reference valuation, not a redeemable currency.</p></div>
+      <div class="info"><div class="icon">🌎</div><h3>Real-world currencies</h3><p>Search the currencies available through our exchange-rate data source. Some pairs may be unavailable.</p></div>
+      <div class="info"><div class="icon">↔</div><h3>Both directions</h3><p>Convert real money into Monopoly dollars, or switch directions with one click.</p></div>
+    </section>
+  </main>
+  <footer><span>© <span id="year"></span> Monopoly Exchange · Independent fan-made calculator</span><span>Exchange-rate data: <a href="https://frankfurter.dev/" target="_blank" rel="noopener noreferrer">Frankfurter API</a> · Not affiliated with Hasbro</span></footer>
+</div>
+<div class="picker-overlay" id="pickerOverlay" hidden>
+  <section class="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+    <div class="picker-head"><h2 id="pickerTitle">Choose real-world currency</h2><button id="closePicker" class="close" aria-label="Close currency picker" type="button">×</button></div>
+    <input type="search" class="search" id="currencySearch" placeholder="Search currency name or code..." aria-label="Search currencies" autocomplete="off">
+    <div id="currencyList" class="currency-list" role="list"></div>
+  </section>
+</div>
+<script>
+/* ===== EASY SETTINGS: EDIT THESE TO CUSTOMIZE YOUR SITE ===== */
+const MONOPOLY_DOLLARS_PER_40_CENTS = 500;
+const USD_PER_500_MONOPOLY_DOLLARS = 0.40;
+const USD_PER_MONOPOLY_DOLLAR = USD_PER_500_MONOPOLY_DOLLARS / MONOPOLY_DOLLARS_PER_40_CENTS;
+const API_BASE = 'https://api.frankfurter.dev/v2';
+// Add your own currency records here if needed. The API list is fetched automatically.
+const STARTER_CURRENCIES = [
+  {code:'USD',name:'US Dollar'}, {code:'EUR',name:'Euro'},
+  {code:'GBP',name:'British Pound'}, {code:'JPY',name:'Japanese Yen'},
+  {code:'CAD',name:'Canadian Dollar'}, {code:'AUD',name:'Australian Dollar'},
+  {code:'INR',name:'Indian Rupee'}, {code:'CHF',name:'Swiss Franc'},
+  {code:'MXN',name:'Mexican Peso'}, {code:'BRL',name:'Brazilian Real'}
+];
+/* ========================================================== */
+const $ = id => document.getElementById(id);
+const FALLBACK_NAMES = Object.fromEntries(STARTER_CURRENCIES.map(c => [c.code,c.name]));
+const FLAGS = {USD:'🇺🇸',EUR:'🇪🇺',GBP:'🇬🇧',JPY:'🇯🇵',CAD:'🇨🇦',AUD:'🇦🇺',INR:'🇮🇳',CHF:'🇨🇭',MXN:'🇲🇽',BRL:'🇧🇷',CNY:'🇨🇳',KRW:'🇰🇷',NZD:'🇳🇿',SGD:'🇸🇬',ZAR:'🇿🇦',SEK:'🇸🇪',NOK:'🇳🇴',DKK:'🇩🇰',PLN:'🇵🇱',TRY:'🇹🇷'};
+let currencyList = [...STARTER_CURRENCIES];
+let fiat = 'USD';
+let realToMonopoly = true;
+let lastResult = '';
+let requestCounter = 0;
+let activeRequest = null;
+const rateCache = new Map();
+function formatted(n){
+  if(!Number.isFinite(n)) return '—';
+  return n.toLocaleString('en-US',{maximumFractionDigits: Math.abs(n)>0 && Math.abs(n)<0.000001?12:6});
+}
+function currentCurrency(){return currencyList.find(c=>c.code===fiat)||{code:fiat,name:FALLBACK_NAMES[fiat]||fiat};}
+function renderSelectors(){
+  const c=currentCurrency();
+  $('fromIcon').textContent=realToMonopoly?(FLAGS[fiat]||'🌐'):'🎩';
+  $('fromName').textContent=realToMonopoly?c.name:'Monopoly Dollar';
+  $('fromCode').textContent=realToMonopoly?fiat:'MNY';
+  $('toIcon').textContent=realToMonopoly?'🎩':(FLAGS[fiat]||'🌐');
+  $('toName').textContent=realToMonopoly?'Monopoly Dollar':c.name;
+  $('toCode').textContent=realToMonopoly?'MNY':fiat;
+  $('amountTag').textContent=realToMonopoly?fiat:'MNY';
+}
+async function getRate(code){
+  if(code==='USD') return {rate:1,date:null};
+  if(rateCache.has(code)) return rateCache.get(code);
+  const resp=await fetch(`${API_BASE}/rate/${encodeURIComponent(code)}/USD`);
+  if(!resp.ok) throw new Error('No reference rate available for '+code);
+  const data=await resp.json();
+  if(!(Number.isFinite(data.rate)&&data.rate>0)) throw new Error('Invalid reference rate');
+  rateCache.set(code,data);
+  return data;
+}
+async function convert(){
+  const raw=$('amount').value;
+  const value=Number(raw);
+  const requestId=++requestCounter;
+  if(activeRequest) activeRequest=null;
+  if(raw.trim()===''||!Number.isFinite(value)||value<0){
+    $('result').textContent='—';$('resultUnit').textContent='Invalid amount';$('rateDisplay').textContent='Enter a number of 0 or more';$('status').textContent='';lastResult='';return;
+  }
+  $('status').classList.remove('error');
+  $('status').textContent=fiat==='USD'?'Calculating...':'Fetching reference rate...';
+  $('result').textContent='…';
+  try{
+    const {rate,date}=await getRate(fiat);
+    if(requestId!==requestCounter) return;
+    const result = realToMonopoly ? value*rate/USD_PER_MONOPOLY_DOLLAR : value*USD_PER_MONOPOLY_DOLLAR/rate;
+    $('result').textContent=formatted(result);
+    $('resultUnit').textContent=realToMonopoly?'Monopoly Dollars':`${fiat} · ${currentCurrency().name}`;
+    $('rateDisplay').textContent=`1 ${fiat} ≈ ${formatted(rate/USD_PER_MONOPOLY_DOLLAR)} MNY`;
+    $('status').textContent=date?`FX reference date: ${date} · Monopoly benchmark: M500 = $0.40`:'Fixed Monopoly benchmark: M500 = $0.40 USD';
+    lastResult=`${formatted(result)} ${realToMonopoly?'Monopoly Dollars':fiat}`;
+  }catch(err){
+    if(requestId!==requestCounter) return;
+    $('result').textContent='Unavailable';$('resultUnit').textContent='Try another currency';
+    $('rateDisplay').textContent='Could not retrieve this exchange rate';
+    $('status').classList.add('error');$('status').textContent='Check your connection, or this currency may not have a USD reference rate.';
+    lastResult='';
+    console.warn(err);
+  }
+}
+function renderCurrencyList(){
+  const term=$('currencySearch').value.trim().toLowerCase();
+  const choices=currencyList.filter(c=>`${c.name} ${c.code}`.toLowerCase().includes(term));
+  const list=$('currencyList');list.replaceChildren();
+  if(!choices.length){const p=document.createElement('p');p.className='empty';p.textContent='No matching currencies';list.appendChild(p);return;}
+  for(const c of choices.slice(0,300)){
+    const b=document.createElement('button');b.type='button';b.className='currency-item';
+    const name=document.createElement('span');name.textContent=`${FLAGS[c.code]||'🌐'}  ${c.name}`;
+    const code=document.createElement('span');code.textContent=c.code;
+    b.append(name,code);b.addEventListener('click',()=>{fiat=c.code;closePicker();renderSelectors();convert();});list.appendChild(b);
+  }
+}
+function openPicker(){
+  $('pickerOverlay').hidden=false;
+  $('currencySearch').value='';renderCurrencyList();
+  $('currencySearch').focus();document.body.style.overflow='hidden';
+}
+function closePicker(){$('pickerOverlay').hidden=true;document.body.style.overflow='';$('fromBtn').focus();}
+async function loadCurrencies(){
+  try{
+    const response=await fetch(`${API_BASE}/currencies`);
+    if(!response.ok) throw Error('Could not retrieve currency list');
+    const data=await response.json();
+    if(!Array.isArray(data)) throw Error('Unexpected currencies format');
+    const dynamic=data.map(c=>({code:c.iso_code,name:c.name})).filter(c=>typeof c.code==='string'&&c.code.length===3&&typeof c.name==='string');
+    currencyList=Array.from(new Map([...STARTER_CURRENCIES,...dynamic].map(c=>[c.code,c])).values()).sort((a,b)=>a.name.localeCompare(b.name));
+    if(!$('pickerOverlay').hidden) renderCurrencyList();
+    renderSelectors();
+  }catch(err){console.warn('Using starter currency list:',err);}
+}
+$('year').textContent=new Date().getFullYear();
+$('fromBtn').addEventListener('click',()=>{if(realToMonopoly)openPicker();});
+$('toBtn').addEventListener('click',()=>{if(!realToMonopoly)openPicker();});
+$('swap').addEventListener('click',()=>{realToMonopoly=!realToMonopoly;renderSelectors();convert();});
+$('convert').addEventListener('click',convert);
+$('amount').addEventListener('input',convert);
+$('currencySearch').addEventListener('input',renderCurrencyList);
+$('closePicker').addEventListener('click',closePicker);
+$('pickerOverlay').addEventListener('click',e=>{if(e.target===$('pickerOverlay'))closePicker();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('pickerOverlay').hidden)closePicker();});
+$('copy').addEventListener('click',async()=>{
+  if(!lastResult)return;
+  try{await navigator.clipboard.writeText(lastResult);$('copy').textContent='Copied!';setTimeout(()=>$('copy').textContent='Copy result',1600);}catch{ $('copy').textContent='Copy unavailable';}
+});
+renderSelectors();convert();loadCurrencies();
+</script>
+</body>
+</html>
